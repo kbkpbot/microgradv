@@ -92,6 +92,24 @@ pub fn (a &Value) tanh() &Value {
 	return out
 }
 
+pub fn (a &Value) log() &Value {
+	mut out := &Value{
+		data:    math.log(a.data)
+		parents: [a]
+		op:      'log'
+	}
+	return out
+}
+
+pub fn (a &Value) exp() &Value {
+	mut out := &Value{
+		data:    math.exp(a.data)
+		parents: [a]
+		op:      'exp'
+	}
+	return out
+}
+
 pub fn (a &Value) sigmoid() &Value {
 	// sigmoid(x) = 1 / (1 + exp(-x))
 	// Use existing operations: 1 / (1 + exp(-x))
@@ -133,6 +151,15 @@ fn val_backward(mut child Value) {
 		}
 		'tanh' {
 			child.parents[0].grad += (1 - child.data * child.data) * child.grad
+		}
+		'log' {
+			// d/dx log(x) = 1/x
+			child.parents[0].grad += (1.0 / child.parents[0].data) * child.grad
+		}
+		'exp' {
+			// d/dx exp(x) = exp(x)
+			// child.data is already exp(parent.data)
+			child.parents[0].grad += child.data * child.grad
 		}
 		'sigmoid' {
 			// sigmoid gradient: s * (1 - s) where s = child.data
