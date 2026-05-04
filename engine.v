@@ -34,6 +34,11 @@ pub fn (a &Value) mul(b &Value) &Value {
 }
 
 pub fn (a &Value) pow(b f64) &Value {
+	// Numerical stability: check for negative base with non-integer exponent
+	// math.pow may return NaN for negative base with fractional exponent
+	if a.data < 0 && b != math.floor(b) {
+		println('Warning: pow with negative base and non-integer exponent may produce NaN')
+	}
 	mut out := &Value{
 		data:    math.pow(a.data, b)
 		parents: [a, value(b)]
@@ -52,6 +57,11 @@ pub fn (a &Value) sub(b &Value) &Value {
 }
 
 pub fn (a &Value) div(b &Value) &Value {
+	// Numerical stability: check for division by zero
+	// In V, division by zero returns +Inf or -Inf
+	if b.data == 0.0 {
+		println('Warning: division by zero in div operation')
+	}
 	mut out := &Value{
 		data:    a.data / b.data
 		parents: [a, b]
@@ -78,6 +88,20 @@ pub fn (a &Value) tanh() &Value {
 		data:    math.tanh(a.data)
 		parents: [a]
 		op:      'tanh'
+	}
+	return out
+}
+
+pub fn (a &Value) sigmoid() &Value {
+	// sigmoid(x) = 1 / (1 + exp(-x))
+	// Use existing operations: 1 / (1 + exp(-x))
+	// Since we have pow, we can use: 1 / (1 + e^(-x))
+	// But simpler: use the mathematical identity
+	// For now, implement using: 1.0 / (1.0 + exp(-a.data))
+	mut out := &Value{
+		data:    1.0 / (1.0 + math.exp(-a.data))
+		parents: [a]
+		op:      'sigmoid'
 	}
 	return out
 }
@@ -109,6 +133,10 @@ fn val_backward(mut child Value) {
 		}
 		'tanh' {
 			child.parents[0].grad += (1 - child.data * child.data) * child.grad
+		}
+		'sigmoid' {
+			// sigmoid gradient: s * (1 - s) where s = child.data
+			child.parents[0].grad += child.data * (1 - child.data) * child.grad
 		}
 		else {
 			// do nothing

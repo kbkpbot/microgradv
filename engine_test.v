@@ -103,3 +103,47 @@ fn test_pow_gradient() {
 	diff := math.abs(v.grad - 6.0)
 	assert diff < 1e-10
 }
+
+fn test_sigmoid_forward() {
+	// Test sigmoid forward pass
+	inputs := [-2.0, -1.0, 0.0, 1.0, 2.0]
+	for x_val in inputs {
+		v := value(x_val)
+		s := v.sigmoid()
+		// sigmoid(x) = 1 / (1 + exp(-x))
+		expected := 1.0 / (1.0 + math.exp(-x_val))
+		diff := math.abs(s.data - expected)
+		assert diff < 1e-10
+	}
+}
+
+fn test_sigmoid_gradient() {
+	// Test sigmoid gradient: s * (1 - s)
+	v := value(1.0)
+	mut s := v.sigmoid()
+	s.backward()
+	// sigmoid(1) ≈ 0.731, gradient ≈ 0.731 * (1 - 0.731) ≈ 0.197
+	expected_grad := s.data * (1 - s.data)
+	diff := math.abs(v.grad - expected_grad)
+	assert diff < 1e-10
+}
+
+fn test_numerical_stability_div() {
+	// Test division by zero warning (should not crash)
+	a := value(1.0)
+	b := value(0.0)
+	result := a.div(b) // Should print warning but not crash
+	// Result should be +Inf
+	// Just verify it runs without crash
+	// +Inf > 0 is true
+	assert result.data > 0
+}
+
+fn test_numerical_stability_pow() {
+	// Test pow with negative base and non-integer exponent
+	a := value(-1.0)
+	result := a.pow(0.5) // sqrt(-1) = NaN
+	// Should print warning
+	// NaN != NaN in V, so we just check it runs without crash
+	_ := result
+}
