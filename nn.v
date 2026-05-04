@@ -13,9 +13,10 @@ pub mut:
 // Initialize weights and bias to random values between -1 and 1
 pub fn new_neuron(nb_input int) &Neuron {
 	return &Neuron{
-		weights: []&Value{len: nb_input, cap: nb_input, init: value(rand.f64_in_range(-1,
-			1) or { 1 / nb_input })}
-		bias: value(rand.f64_in_range(-1, 1) or { 1 / nb_input })
+		weights: []&Value{len: nb_input, cap: nb_input, init: value(rand.f64_in_range(-1, 1) or {
+			1 / nb_input
+		})}
+		bias:    value(rand.f64_in_range(-1, 1) or { 1 / nb_input })
 	}
 }
 
@@ -34,7 +35,7 @@ pub fn (n &Neuron) forward(x []&Value) !&Value {
 }
 
 pub fn (n &Neuron) parameters() []&Value {
-	mut out := []&Value{len: 1, cap: n.weights.len + 1, init: n.bias}
+	mut out := [n.bias]
 	out << n.weights
 	return out
 }
@@ -49,14 +50,14 @@ pub:
 
 pub fn new_layer(nb_input int, nb_output int) &Layer {
 	return &Layer{
-		neurons: []&Neuron{len: nb_output, cap: nb_output, init: new_neuron(nb_input)}
+		neurons:    []&Neuron{len: nb_output, cap: nb_output, init: new_neuron(nb_input)}
 		dimensions: [nb_input, nb_output]
 	}
 }
 
 // Iterate over the neurons and to forward pass of each with the given input
 pub fn (l &Layer) forward(x []&Value) ![]&Value {
-	return []&Value{len: l.dimensions[1],cap:l.dimensions[1], init: l.neurons[index].forward(x)!}
+	return []&Value{len: l.dimensions[1], cap: l.dimensions[1], init: l.neurons[index].forward(x)!}
 }
 
 pub fn (l &Layer) parameters() []&Value {
@@ -80,8 +81,8 @@ pub fn new_mlp(nb_input int, nb_outputs []int) &MLP {
 	mut dm := []int{len: 1, cap: nb_outputs.len + 1, init: nb_input}
 	dm << nb_outputs
 	return &MLP{
-		layers: []&Layer{len: nb_outputs.len, cap: nb_outputs.len, init: new_layer(dm[index],
-			dm[index + 1])}
+		layers:     []&Layer{len: nb_outputs.len, cap: nb_outputs.len, init: new_layer(dm[index], dm[
+			index + 1])}
 		dimensions: dm
 	}
 }

@@ -1,5 +1,7 @@
 module microgradv
 
+import math
+
 fn test_engine() {
 	a := value(-4.0)
 	assert a.data == -4.0
@@ -50,4 +52,54 @@ fn test_engine() {
 	assert b.grad == 20.32762219152632
 	assert e.grad == -5.000543596581886
 	assert f.grad == 0.7952797499345223
+}
+
+fn test_relu_gradient() {
+	// Test ReLU gradient: should be 0 for negative input, 1 for positive
+	v1 := value(-2.0)
+	mut r1 := v1.relu()
+	r1.backward()
+	assert v1.grad == 0.0 // Negative input, gradient should be 0
+
+	v2 := value(3.0)
+	mut r2 := v2.relu()
+	r2.backward()
+	assert v2.grad == 1.0 // Positive input, gradient should be 1
+}
+
+fn test_tanh_gradient() {
+	// Test tanh gradient: d/dx tanh(x) = 1 - tanh^2(x)
+	v := value(1.0)
+	mut t := v.tanh()
+	t.backward()
+	expected_grad := 1.0 - (math.tanh(1.0) * math.tanh(1.0))
+	diff := math.abs(v.grad - expected_grad)
+	assert diff < 1e-10
+}
+
+fn test_backward_topo_order() {
+	// Test that backward pass respects topological order
+	a := value(2.0)
+	b := value(3.0)
+	c := a.add(b) // 5
+	d := c.mul(a) // 10
+	mut e := d.tanh() // tanh(10)
+
+	e.backward()
+
+	// Gradients should be computed correctly
+	assert e.grad == 1.0
+	assert a.grad != 0.0
+	assert b.grad != 0.0
+}
+
+fn test_pow_gradient() {
+	// Test power function gradient
+	// d/dx(x^n) = n * x^(n-1)
+	v := value(3.0)
+	mut p := v.pow(2) // 3^2 = 9
+	p.backward()
+	// dg/dv = 2 * 3^1 = 6
+	diff := math.abs(v.grad - 6.0)
+	assert diff < 1e-10
 }

@@ -37,6 +37,28 @@ println('${a.grad:.4}') // prints 138.8338, i.e. the numerical value of dg/da
 println('${b.grad:.4}') // prints 645.5773, i.e. the numerical value of dg/db
 ```
 
+Or using method calls:
+```v
+import sydiepus.microgradv
+
+a := microgradv.value(-4.0)
+b := microgradv.value(2.0)
+mut c := a.add(b)
+mut d := a.mul(b).add(b.pow(3))
+c = c.add(c.add(microgradv.value(1)))
+c = c.add(microgradv.value(1)).add(c).sub(a)
+d = d.add(d.mul(microgradv.value(2))).add(b.add(a).relu())
+d = d.add(microgradv.value(3).mul(d)).add(b.sub(a).relu())
+e := c.sub(d)
+f := e.pow(2)
+mut g := f.div(microgradv.value(2))
+g = g.add(microgradv.value(10).div(f))
+println('${g.data:.4}') // prints 24.7041
+g.backward()
+println('${a.grad:.4}') // prints 138.8338
+println('${b.grad:.4}') // prints 645.5773
+```
+
 ## Training a neural network
 
 ```v

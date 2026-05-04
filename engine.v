@@ -17,45 +17,45 @@ pub mut:
 
 pub fn (a &Value) add(b &Value) &Value {
 	mut out := &Value{
-		data: a.data + b.data
+		data:    a.data + b.data
 		parents: [a, b]
-		op: '+'
+		op:      '+'
 	}
 	return out
 }
 
 pub fn (a &Value) mul(b &Value) &Value {
 	mut out := &Value{
-		data: a.data * b.data
+		data:    a.data * b.data
 		parents: [a, b]
-		op: '*'
+		op:      '*'
 	}
 	return out
 }
 
 pub fn (a &Value) pow(b f64) &Value {
 	mut out := &Value{
-		data: math.pow(a.data, b)
+		data:    math.pow(a.data, b)
 		parents: [a, value(b)]
-		op: '**'
+		op:      '**'
 	}
 	return out
 }
 
 pub fn (a &Value) sub(b &Value) &Value {
 	mut out := &Value{
-		data: a.data - b.data
+		data:    a.data - b.data
 		parents: [a, b]
-		op: '-'
+		op:      '-'
 	}
 	return out
 }
 
 pub fn (a &Value) div(b &Value) &Value {
 	mut out := &Value{
-		data: a.data / b.data
+		data:    a.data / b.data
 		parents: [a, b]
-		op: '/'
+		op:      '/'
 	}
 	return out
 }
@@ -66,18 +66,18 @@ pub fn (a &Value) relu() &Value {
 		rel = 0
 	}
 	mut out := &Value{
-		data: rel
+		data:    rel
 		parents: [a]
-		op: 'ReLu'
+		op:      'ReLu'
 	}
 	return out
 }
 
 pub fn (a &Value) tanh() &Value {
 	mut out := &Value{
-		data: math.tanh(a.data)
+		data:    math.tanh(a.data)
 		parents: [a]
-		op: 'tanh'
+		op:      'tanh'
 	}
 	return out
 }
@@ -102,11 +102,10 @@ fn val_backward(mut child Value) {
 		}
 		'/' {
 			child.parents[0].grad += math.pow(child.parents[1].data, -1) * child.grad
-			child.parents[1].grad += f64(-1) * child.parents[0].data * math.pow(child.parents[1].data,
-				-2) * child.grad
+			child.parents[1].grad += f64(-1) * child.parents[0].data * math.pow(child.parents[1].data, -2) * child.grad
 		}
 		'ReLu' {
-			child.parents[0].grad += if child.data > 0 { child.grad } else { 0 }
+			child.parents[0].grad += if child.parents[0].data > 0 { child.grad } else { 0 }
 		}
 		'tanh' {
 			child.parents[0].grad += (1 - child.data * child.data) * child.grad
